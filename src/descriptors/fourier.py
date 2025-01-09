@@ -8,30 +8,42 @@ class FourierDescriptor:
         self.resolution = resolution
 
     def compute(self, voxel_grid):
-        try:
-            # Ensure input is the right size
-            if voxel_grid.shape[0] > self.resolution:
-                factor = self.resolution / voxel_grid.shape[0]
-                voxel_grid = self._downsample(voxel_grid, factor)
+        # Add normalization for translation invariance
+        voxel_grid = voxel_grid - np.mean(voxel_grid)
 
-            # Pad the volume
-            padded = self._pad_volume(voxel_grid)
+        # Power spectrum for rotation invariance
+        fft = fftn(voxel_grid)
+        power_spectrum = np.abs(fft) ** 2
 
-            # Compute FFT
-            fft = fftn(padded)
-            magnitude_spectrum = np.abs(fft)
+        # Shell-based features with improved radius sampling
+        features = []
+        center = np.array(power_spectrum.shape) // 2
+        max_radius = min(center)
 
-            # Extract features
-            features = self._extract_features(magnitude_spectrum)
+        # Log-space radius sampling for better feature distribution
+        radii = np.logspace(0, np.log10(max_radius), 32)
 
-            # Cleanup
-            del fft, magnitude_spectrum
-            gc.collect()
+        for r1, r2 in zip(radii[:-1], radii[1:]):
+            shell_mask = self._get_shell_mask(power_spectrum.shape, center, r1, r2)
+            shell_values = power_spectrum[shell_mask]
 
-            return self._normalize_features(features)
-        except Exception as e:
-            print(f"Error in Fourier descriptor computation: {str(e)}")
-            raise
+            if len(shell_values) > 0:
+                features.extend([
+                    np.mean(shell_values),
+                    np.std(shell_values),
+                    np.percentile(shell_values, 75)
+                ])
+
+        return self._normalize_features(np.array(features))
+
+    def _get_shell_mask(self, shape, center, r1, r2):
+        x, y, z = np.ogrid[:shape[0], :shape[1], :shape[2]]
+        distances = np.sqrt(
+            (x - center[0])**2 +
+            (y - center[1])**2 +
+            (z - center[2])**2
+        )
+        return (distances >= r1) & (distances < r2)
 
     def _downsample(self, array, factor):
         if factor >= 1:

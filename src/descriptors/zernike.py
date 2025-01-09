@@ -9,19 +9,21 @@ class ZernikeDescriptor:
         self.resolution = 32
 
     def compute(self, voxel_grid):
-        if voxel_grid.shape[0] > self.resolution:
-            factor = self.resolution / voxel_grid.shape[0]
-            voxel_grid = self._downsample(voxel_grid, factor)
+        # Center and normalize the voxel grid
+        voxel_grid = (voxel_grid - np.mean(voxel_grid)) / np.std(voxel_grid)
 
+        # Improve spherical coordinate sampling
         r, theta, phi = self._to_spherical_coords(voxel_grid)
+
+        # Use weighted moments for better stability
+        weights = np.exp(-r**2 / 2)  # Gaussian weighting
         moments = []
 
         for n in range(0, self.max_order + 1, 2):
-            for l in range(n + 1):
-                if (n - l) % 2 == 0:
-                    for m in range(-l, l + 1):
-                        moment = self._compute_moment(voxel_grid, r, theta, phi, n, l, m)
-                        moments.append(abs(moment))
+            for l in range(0, n + 1, 2):  # Skip odd l for better rotation invariance
+                for m in range(-l, l + 1):
+                    moment = self._compute_moment(voxel_grid * weights, r, theta, phi, n, l, m)
+                    moments.append(abs(moment))
 
         return self._normalize_moments(np.array(moments))
 

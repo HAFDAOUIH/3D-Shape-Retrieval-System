@@ -18,34 +18,55 @@ class VoxelProcessor:
 
     def create_voxel_grid(self, mesh, fill_interior=True):
         """
-        Convert mesh to voxel grid, handling non-watertight meshes.
-
-        Args:
-            mesh: trimesh.Trimesh object
-            fill_interior: boolean, whether to attempt filling interior
-        Returns:
-            3D numpy array of voxel grid
+        Convert mesh to voxel grid with consistent dimensions and improved error handling.
         """
         try:
-            # First attempt: direct voxelization
-            voxels = mesh.voxelized(pitch=1.0/self.resolution).matrix
+            if mesh is None:
+                return None
 
-            # Handle non-watertight meshes
-            if fill_interior and not mesh.is_watertight:
-                # Fill holes in each axis direction
-                filled_voxels = np.zeros_like(voxels)
-                for axis in range(3):
-                    # Rotate array to process each axis
-                    rotated = np.moveaxis(voxels, axis, 0)
-                    filled = np.array([binary_fill_holes(slice_2d) for slice_2d in rotated])
-                    filled_voxels |= np.moveaxis(filled, 0, axis)
+            # Scale mesh to fit unit cube
+            extents = mesh.extents
+            scale = 1.0 / max(extents)
+            mesh = mesh.copy()
+            mesh.apply_scale(scale)
 
-                voxels = filled_voxels
+            # Create voxel grid
+            voxels = mesh.voxelized(pitch=1.0/self.resolution)
+            if voxels is None:
+                return None
 
-            return voxels
+            # Fill the volume
+            if fill_interior:
+                try:
+                    voxels = voxels.fill()
+                except Exception as e:
+                    logging.warning(f"Fill operation failed: {e}")
+                    # Continue with unfilled voxels
+
+            matrix = voxels.matrix
+            if matrix is None:
+                return None
+
+            # Ensure consistent dimensions through padding/cropping
+            target_shape = (self.resolution, self.resolution, self.resolution)
+            result = np.zeros(target_shape, dtype=bool)
+
+            # Calculate dimensions to copy
+            dims = [min(s, t) for s, t in zip(matrix.shape, target_shape)]
+
+            # Center the voxel data
+            starts = [(t - d) // 2 for t, d in zip(target_shape, dims)]
+
+            # Copy data to center of target array
+            slices_target = tuple(slice(s, s + d) for s, d in zip(starts, dims))
+            slices_source = tuple(slice(0, d) for d in dims)
+
+            result[slices_target] = matrix[slices_source]
+
+            return result
 
         except Exception as e:
-            logger.error(f"Error in voxelization: {str(e)}")
+            logging.error(f"Error in voxelization: {e}")
             return None
 
 
@@ -73,21 +94,28 @@ class VoxelProcessor:
 
     def process_mesh(self, mesh):
         """
-        Complete processing pipeline for shape descriptor preparation.
+        Complete processing pipeline with error handling.
         """
         voxel_grid = self.create_voxel_grid(mesh)
-        surface_voxels = self.get_surface_voxels(voxel_grid)
+        if voxel_grid is None:
+            return None
 
-        return {
-            'voxel_grid': voxel_grid,
-            'surface_voxels': surface_voxels,
-            'resolution': self.resolution,
-            'is_watertight': mesh.is_watertight
-        }
+        try:
+            surface_voxels = self.get_surface_voxels(voxel_grid)
+
+            return {
+                'voxel_grid': voxel_grid,
+                'surface_voxels': surface_voxels,
+                'resolution': self.resolution,
+                'is_watertight': mesh.is_watertight if mesh is not None else False
+            }
+        except Exception as e:
+            logging.error(f"Error in process_mesh: {e}")
+            return None
 
 
 class MeshNormalizer:
-    def __init__(self, target_vertices=2000, make_watertight=True):
+    def __init__(self, target_vertices=1000, make_watertight=True):
         """
         Initialize the enhanced mesh normalizer.
 
