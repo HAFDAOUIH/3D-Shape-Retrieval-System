@@ -1,0 +1,84 @@
+Analysis Metrics Report
+=====================
+
+Distribution Metrics:
+-------------------
+
+Fourier Descriptors:
+
+Resolution 500:
+  Mean: 0.0948
+  Std Dev: 0.0540
+  Skewness: 1.7827
+  Kurtosis: 8.9468
+  Percentiles (25, 50, 75): [0.06377603 0.08920655 0.11993079]
+
+Resolution 1000:
+  Mean: 0.0948
+  Std Dev: 0.0540
+  Skewness: 1.7827
+  Kurtosis: 8.9468
+  Percentiles (25, 50, 75): [0.06377603 0.08920655 0.11993079]
+
+Resolution 2000:
+  Mean: 0.0948
+  Std Dev: 0.0540
+  Skewness: 1.7827
+  Kurtosis: 8.9468
+  Percentiles (25, 50, 75): [0.06377603 0.08920655 0.11993079]
+
+Zernike Descriptors:
+
+Resolution 500:
+  Mean: 0.0172
+  Std Dev: 0.0769
+  Skewness: 7.1190
+  Kurtosis: 58.5934
+  Percentiles (25, 50, 75): [1.34092542e-06 4.75292025e-05 1.70398776e-03]
+
+Resolution 1000:
+  Mean: 0.0172
+  Std Dev: 0.0769
+  Skewness: 7.1190
+  Kurtosis: 58.5934
+  Percentiles (25, 50, 75): [1.34092542e-06 4.75292025e-05 1.70398776e-03]
+
+Resolution 2000:
+  Mean: 0.0172
+  Std Dev: 0.0769
+  Skewness: 7.1190
+  Kurtosis: 58.5934
+  Percentiles (25, 50, 75): [1.34092542e-06 4.75292025e-05 1.70398776e-03]
+
+Correlation Metrics:
+-------------------
+
+Resolution 500:
+  Fourier-Zernike Correlation: 0.0100
+  Original Dimensions - Fourier: 84, Zernike: 161
+  Analyzed Dimensions: 84
+
+Resolution 1000:
+  Fourier-Zernike Correlation: 0.0100
+  Original Dimensions - Fourier: 84, Zernike: 161
+  Analyzed Dimensions: 84
+
+Resolution 2000:
+  Fourier-Zernike Correlation: 0.0100
+  Original Dimensions - Fourier: 84, Zernike: 161
+  Analyzed Dimensions: 84
+
+Performance Metrics:
+-------------------
+
+Resolution 500:
+  Processing Time: 36.2844 seconds
+  Memory Usage: 0.00 MB
+
+Resolution 1000:
+  Processing Time: 37.6740 seconds
+  Memory Usage: 0.00 MB
+
+Resolution 2000:
+  Processing Time: 36.2231 seconds
+  Memory Usage: 0.00 MB

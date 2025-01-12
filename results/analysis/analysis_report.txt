@@ -1,0 +1,15 @@
+3D Model Descriptor Analysis Report
+=================================
+
+Analysis Summary:
+----------------
+Total models analyzed: 5
+Average processing time: 7.178 seconds
+Processing time std dev: 0.227 seconds
+
+Descriptor Statistics:
+--------------------
+Fourier descriptor length: 84
+Zernike descriptor length: 161
+
+Processing succeeded for 5 out of 5 models.
