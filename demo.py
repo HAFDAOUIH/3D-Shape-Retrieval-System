@@ -3,6 +3,7 @@ import logging
 from src.pipeline.model_processor import ModelProcessor
 from src.search_engine.model_search_engine import ModelSearchEngine
 from src.analysis.descriptor_analyzer import DescriptorAnalyzer
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 
 def main():
     # Configure logging
